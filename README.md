@@ -9,7 +9,7 @@ It's intended to be a primer for the following software:
 
 ## 👩‍🚀 Pre-requisites
 
-- [Node.js](https://nodejs.org/) version 12 (LTS)
+- [Node.js](https://nodejs.org/) version 14 (LTS)
 
 ## 🚀 Local development Quickstart
 
@@ -22,7 +22,8 @@ It's intended to be a primer for the following software:
     ```sh
     IOT_CLIENT_ID=<arduino iot key>
     IOT_CLIENT_SECRET=<arduino iot secret>
-    THING_ID=<the id of the thing to connect with>
+    THING_ID_FROM=<thing id from which get values>
+    THING_ID_TO=<thing id to forward values>
     ```
     
 3. Setup [Heroku](https://heroku.com)

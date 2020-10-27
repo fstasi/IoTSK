@@ -2,6 +2,7 @@
   "name": "iotsk",
   "version": "1.0.0",
   "description": "",
+  "type": "module",
   "main": "server.js",
   "scripts": {
     "start": "export $(cat .env | xargs) && node ./src/server.js",
