@@ -47,23 +47,22 @@ ArduinoIoTCloud.connect({
     // Instantiate the proxy, passing the dictionary of connected things
     const proxy = propertiesProxy(things);
 
-    // Instantiate Source Thing in the dictionary
-    things[process.env.THING_ID_FROM] = await thing(
+    await Promise.all([thing(
       process.env.THING_ID_FROM,
       ArduinoIoTCloud,
       getThingProperties,
       getThingPropertiesLastValues,
       proxy
-    );
-
-    // Instantiate Destination Thing in the dictionary
-    things[process.env.THING_ID_TO] = await thing(
+    ), thing(
       process.env.THING_ID_TO,
       ArduinoIoTCloud,
       getThingProperties,
       getThingPropertiesLastValues,
       proxy
-    );
+    )]).then(([thingFrom, thingTo]) => {
+      things[process.env.THING_ID_FROM] = thingFrom;
+      things[process.env.THING_ID_TO] = thingTo;
+    });
   })
   .then(() => console.log("Callbacks registered"))
   .catch((error) => console.error(error));
