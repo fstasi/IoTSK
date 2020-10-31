@@ -2,6 +2,14 @@ import express from "express";
 import { things } from "./arduino.mjs";
 
 const _router = express.Router();
+
+_router.get("/:thingId/properties", function (req, res) {
+  const properties = things[req.params.thingId]?.getPropertiesList() || null;
+  const message =
+    properties === null ? `No known properties` : `properties: ${properties}`;
+  res.send(message);
+});
+
 _router.get("/:thingId/:propertyName", function (req, res) {
   const value =
     things[req.params.thingId]?.getPropertyValue(req.params.propertyName) ||
@@ -14,11 +22,9 @@ _router.get("/:thingId/:propertyName", function (req, res) {
 });
 
 _router.post("/:thingId/:propertyName", (req, res) => {
-  const oldValue =
-    things[req.params.thingId]?.getPropertyValue(req.params.propertyName) ||
-    null;
+  const properties = things[req.params.thingId]?.getPropertiesList() || [];
 
-  if (oldValue === null) {
+  if (!properties.includes(req.params.propertyName)) {
     res.send(
       `Cannot set new value for invalid property ${req.params.propertyName}`
     );
