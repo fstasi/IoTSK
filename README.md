@@ -41,3 +41,7 @@ This project is also intended as a primer for the following software:
     - via `heroku local`
     - with the provided launch configuration if you are using VSCode
     - via `npm start` 
+
+## 📖 API Docs
+
+Server endpoints are documented using [Swagger](https://swagger.io/) and jsDoc. Once the server is running on your local machine just visit `http://localhost:3000/docs` to view the docs and try the APIs!
