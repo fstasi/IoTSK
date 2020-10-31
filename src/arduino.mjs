@@ -1,19 +1,27 @@
 import { ArduinoIoTCloud } from "arduino-iot-js";
 import ArduinoIotClient from "@arduino/arduino-iot-client";
 import { thing } from "./thing.mjs";
+import { propertiesProxy } from "./proxy.mjs";
 
-// init the ArduinoIotClient
+// Instantiate the dictionary of connected things. Will be populated later on.
+// Exported as used by the router to interrogate Things
+export const things = {
+  [process.env.THING_ID_FROM]: null,
+  [process.env.THING_ID_TO]: null,
+};
+
+// Init the ArduinoIotClient
 const client = ArduinoIotClient.ApiClient.instance;
 const propertiesV2Api = new ArduinoIotClient.PropertiesV2Api();
 const seriesV2Api = new ArduinoIotClient.SeriesV2Api();
 
-// list all the properties of a thing
+// List all the properties of a thing
 const getThingProperties = (thingId) => {
   return propertiesV2Api.propertiesV2List(thingId, {});
 };
 
-// get the value for every propertyId passed in the input argument
-const getPropertiesLastValues = (thingId, propertiesIdArr) => {
+// Get the value for every propertyId passed in the input argument
+const getThingPropertiesLastValues = (thingId, propertiesIdArr) => {
   const request = {
     requests: propertiesIdArr.map((property_id) => {
       return { property_id, thing_id: thingId };
@@ -22,39 +30,7 @@ const getPropertiesLastValues = (thingId, propertiesIdArr) => {
   return seriesV2Api.seriesV2BatchQueryRawLastValue(request);
 };
 
-const thingsProxyConfig = {
-  [process.env.THING_ID_FROM]: {
-    'property': {
-      toThing : '',
-      toProperty: ''
-    }
-  }
-}
-
-const proxyThingProperty = (thingId, propertyName, value) => {
-
-  // skip things or properties not defined in the proxyconfig
-  if (!thingsProxyConfig[thingId] || !thingsProxyConfig[thingId][property]) {
-    return;
-  }
-
-  const forwardThingId = thingsProxyConfig[thingId][propertyName].toThing;
-  const toProperty = thingsProxyConfig[thingId][propertyName].toProperty;
-
-  // avoid sending values to not associated things
-  if (!things[forwardThingId]) {
-    return;
-  }
-
-  things[forwardThingId].setPropertyValue(toProperty, value);
-}
-
-export const things = {
-  [process.env.THING_ID_FROM]: null,
-  [process.env.THING_ID_TO]: null,
-};
-
-// connect to the Arduino IoT Cloud broker
+// Connect to the Arduino IoT Cloud broker
 ArduinoIoTCloud.connect({
   clientId: process.env.IOT_CLIENT_ID,
   clientSecret: process.env.IOT_CLIENT_SECRET,
@@ -65,21 +41,29 @@ ArduinoIoTCloud.connect({
   .then(async () => {
     console.log("Connected to Arduino IoT Cloud broker");
 
-    // use the token to connect with arduino-iot-client
+    // Use the token to connect with arduino-iot-client
     client.authentications["oauth2"].accessToken = ArduinoIoTCloud.getToken();
 
+    // Instantiate the proxy, passing the dictionary of connected things
+    const proxy = propertiesProxy(things);
+
+    // Instantiate Source Thing in the dictionary
     things[process.env.THING_ID_FROM] = await thing(
       process.env.THING_ID_FROM,
+      ArduinoIoTCloud,
       getThingProperties,
-      getPropertiesLastValues,
-      proxyThingProperty
+      getThingPropertiesLastValues,
+      proxy
     );
+
+    // Instantiate Destination Thing in the dictionary
     things[process.env.THING_ID_TO] = await thing(
       process.env.THING_ID_TO,
+      ArduinoIoTCloud,
       getThingProperties,
-      getPropertiesLastValues,
-      proxyThingProperty
+      getThingPropertiesLastValues,
+      proxy
     );
   })
   .then(() => console.log("Callbacks registered"))
-  .catch((error) => console.log(error));
+  .catch((error) => console.error(error));
