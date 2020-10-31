@@ -42,7 +42,10 @@ export const thing = async (
 
   // Register a callback for every property in the object to keep the values updated
   Object.keys(thingProperties).forEach((propertyName) => {
+    console.log(`${thingId} - register callback for ${propertyName}`);
+
     ArduinoIoTCloud.onPropertyValue(thingId, propertyName, (newValue) => {
+      console.log(`${thingId} - property ${propertyName} changed`);
       thingProperties[propertyName].value = newValue;
 
       // Invoke the proxy callback
@@ -63,6 +66,7 @@ export const thing = async (
     },
     // Set the value for a property
     setPropertyValue(propertyName, newValue) {
+      console.log(`${thingId} - writing ${propertyName}, value: ${newValue}`);
       return ArduinoIoTCloud.sendProperty(thingId, propertyName, newValue);
     },
   };

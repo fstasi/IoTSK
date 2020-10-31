@@ -25,6 +25,7 @@ export const propertiesProxy = (things) => {
     if (!things[thingIdTo]) {
       return;
     }
+    console.log(`Forwarding ${propertyName} (value: ${value}) from ${thingIdFrom} to ${thingIdTo}`);
     things[thingIdTo].setPropertyValue(propertyName, value);
   };
 };
